@@ -34,3 +34,6 @@
 # Other
 data/*
 *.py
+*.txt
+*.png
+*.mp4
