@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <array>
 #include <cmath>
 
@@ -21,7 +23,7 @@ void initialisePosition(float (&r)[N][N][2])
     }
 }
 
-void initialiseMagnetization(float (&m)[N][N][3], float (&r)[N][N][2], float X, float Y, float pol, float charge, float w)
+void initialiseMagnetization(float (&m)[N][N][3], float (&r)[N][N][2], float pol, float charge, float w)
 {
     // Initialise with a skyrmion in the middle of the grid
     for (int i=0; i<N; i++)
@@ -47,7 +49,7 @@ void initialiseMagnetization(float (&m)[N][N][3], float (&r)[N][N][2], float X, 
     }
 }
 
-void updateMagnetization(float (&m)[N][N][3])
+void updateMagnetization(float (&m)[N][N][3], float (&B)[N][N][3])
 {
     for (int i=0; i<N; i++)
     {
@@ -58,16 +60,112 @@ void updateMagnetization(float (&m)[N][N][3])
     }
 }
 
-void updateMagneticField(float (&m)[N][N][3])
-{
-}
-
-void writeFile(string name, float (&r)[N][N][2], float (&m)[N][N][3])
+void calculateMagneticField(float (&m)[N][N][3], float (&B)[N][N][3], const float (&Ba)[3])
 {
     for (int i=0; i<N; i++)
     {
         for (int j=0; j<N; j++)
         {
+            // Reset to zero (adding the applied magnetic field first)
+            B[i][j][0] = Ba[0];
+            B[i][j][1] = Ba[1];
+            B[i][j][2] = Ba[2];
+
+            // Central spin
+            B[i][j][0] -= (4 / (DELTA*DELTA)) * m[i][j][0];
+            B[i][j][1] -= (4 / (DELTA*DELTA)) * m[i][j][1];
+            B[i][j][2] -= (4 / (DELTA*DELTA)) * m[i][j][2];
+            B[i][j][0] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][0];
+            B[i][j][1] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][1];
+            B[i][j][2] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][2];
+
+            // Cell directly to left
+            B[i][j][0] += m[i-1][j][0] / (DELTA*DELTA);
+            B[i][j][1] += m[i-1][j][1] / (DELTA*DELTA);
+            B[i][j][2] += m[i-1][j][2] / (DELTA*DELTA);
+            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][0];
+            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][1];
+            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][2];
+
+            // Cell directly to right
+            B[i][j][0] += m[i+1][j][0] / (DELTA*DELTA);
+            B[i][j][1] += m[i+1][j][1] / (DELTA*DELTA);
+            B[i][j][2] += m[i+1][j][2] / (DELTA*DELTA);
+            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][0];
+            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][1];
+            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][2];
+
+            // Cell directly below
+            B[i][j][0] += m[i][j-1][0] / (DELTA*DELTA);
+            B[i][j][1] += m[i][j-1][1] / (DELTA*DELTA);
+            B[i][j][2] += m[i][j-1][2] / (DELTA*DELTA);
+            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][0];
+            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][1];
+            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][2];
+
+            // Cell directly above
+            B[i][j][0] += m[i][j+1][0] / (DELTA*DELTA);
+            B[i][j][1] += m[i][j+1][1] / (DELTA*DELTA);
+            B[i][j][2] += m[i][j+1][2] / (DELTA*DELTA);
+            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][0];
+            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][1];
+            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][2];
+
+            // Cell to bottom-left
+            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][0];
+            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][1];
+            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][2];
+
+            // Cell to bottom-right
+            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][0];
+            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][1];
+            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][2];
+
+            // Cell to top-left
+            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][0];
+            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][1];
+            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][2];
+
+            // Cell to top-right
+            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][0];
+            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][1];
+            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][2];
+
+            // Cell two to left
+            B[i][j][0] -= m[i-2][j][0] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][1] -= m[i-2][j][1] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][2] -= m[i-2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+
+            // Cell two to right
+            B[i][j][0] -= m[i+2][j][0] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][1] -= m[i+2][j][1] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][2] -= m[i+2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+
+            // Cell two below
+            B[i][j][0] -= m[i][j-2][0] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][1] -= m[i][j-2][1] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][2] -= m[i][j-2][2] / (DELTA*DELTA*DELTA*DELTA);
+
+            // Cell two above
+            B[i][j][0] -= m[i][j+2][0] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][1] -= m[i][j+2][1] / (DELTA*DELTA*DELTA*DELTA);
+            B[i][j][2] -= m[i][j+2][2] / (DELTA*DELTA*DELTA*DELTA);
+
+        }
+    }
+}
+
+void writeFile(string name, float (&r)[N][N][2], float (&m)[N][N][3])
+{
+    ofstream file;
+    file.open(name);
+    file << "x,y,mx,my,mz" << endl;
+
+    for (int i=0; i<N; i++)
+    {
+        for (int j=0; j<N; j++)
+        {
+            file << r[i][j][0] << "," << r[i][j][1] << "," << m[i][j][0] << "," << m[i][j][1] << "," << m[i][j][2] << endl;
         }
     }
 }
@@ -81,15 +179,24 @@ int main()
     float m[N][N][3];  // Declare magnetization array
     float B[N][N][3];  // Declare magnetic field array
 
-    initialisePosition(r);
-    initialiseMagnetization(m, r, 10, 10, 1, 1, 3);
+    const float Ba[3] = {0., 0., 0.};  // Applied magnetic field
 
+    initialisePosition(r);
+    cout << "Setting initial magnetization" << endl;
+    initialiseMagnetization(m, r, 1, 1, 3);
+    cout << "Calculating effective field" << endl;
+    calculateMagneticField(m, B, Ba);
+    cout << "Done" << endl;
+
+    // int counter = 0;
     // while (t < T_FIN)
     // {
     //     cout << t / T_FIN << endl;
-    //     updateMagnetization(m);
-    //     // updateMagneticField(B);
+    //     updateMagnetization(m, B);
+    //     updateMagneticField(B);
+    //     writeFile("data/" + to_string(counter) + ".txt", r, m);
     //     t += h;
+    //     counter++;
     // }
 
     writeFile("Test", r, m);
