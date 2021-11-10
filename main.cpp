@@ -12,6 +12,8 @@
 
 using namespace std;
 
+float t = 0;  // Total simulation time
+
 void crossProduct(float (&a)[3], float (&b)[3], float (&out)[3])
 {
     out[0] = a[1] * b[2] - b[1] * a[2];
@@ -258,9 +260,7 @@ void calculateTimeDerivative(float (&m)[N][N][3], float (&B)[N][N][3], float(&dm
 void step(float (&m)[N][N][3], float (&B)[N][N][3])
 {
 
-    // Maybe declare these variables elsewhere
-
-    // Dorman-Prince integration
+    // Dorman-Prince (RK45) integration
     float k1[N][N][3];
     float k2[N][N][3];
     float k3[N][N][3];
@@ -376,21 +376,54 @@ void writeFile(string name, float (&r)[N][N][2], float (&m)[N][N][3])
 {
     ofstream file;
     file.open(name);
-    file << "x,y,mx,my,mz" << endl;
 
-    for (int i=0; i<N; i++)
+    // Write out the header
+    file << "# OOMMF OVF 2.0" << endl;
+    file << "# Segment count: 1" << endl;
+    file << "# Begin: Segment" << endl;
+    file << "# Begin: Header" << endl;
+    file << "# Title: m" << endl;
+    file << "# meshtype: rectangular" << endl;
+    file << "# meshunit: dimensionless" << endl;
+    file << "# valueunit: dimensionless" << endl;
+    file << "# xmin: 0" << endl;
+    file << "# ymin: 0" << endl;
+    file << "# zmin: 0" << endl;
+    file << "# xmax: " << to_string(DELTA * N) << endl;
+    file << "# ymax: " << to_string(DELTA * N) << endl;
+    file << "# zmax: " << to_string(DELTA) << endl;
+    file << "# valuedim: 3" << endl;
+    file << "# valuelabels: m_x m_y m_z" << endl;
+    file << "# Desc: Total simulation time: " << to_string(t) << endl;
+    file << "# xbase: " << to_string(DELTA/2) << endl;
+    file << "# ybase: " << to_string(DELTA/2) << endl;
+    file << "# zbase: " << to_string(DELTA/2) << endl;
+    file << "# xnodes: " << to_string(N) << endl;
+    file << "# ynodes: " << to_string(N) << endl;
+    file << "# znodes: 1" << endl;
+    file << "# xstepsize: " << to_string(DELTA) << endl;
+    file << "# ystepsize: " << to_string(DELTA) << endl;
+    file << "# zstepsize: " << to_string(DELTA) << endl;
+    file << "# End: Header" << endl;
+    file << "# Begin: Data Text" << endl;
+
+    // OVF uses the Fortran convention, i.e. x changes fastest
+    for (int j=0; j<N; j++)
     {
-        for (int j=0; j<N; j++)
+        for (int i=0; i<N; i++)
         {
-            file << r[i][j][0] << "," << r[i][j][1] << "," << m[i][j][0] << "," << m[i][j][1] << "," << m[i][j][2] << endl;
+            file << m[i][j][0] << " " << m[i][j][1] << " " << m[i][j][2] << endl;
         }
     }
+
+    file << "# End: Data Text" << endl;
+    file << "# End: Segment" << endl;
+
+    file.close();
 }
 
 int main()
 {
-
-    float t = 0;  // Time
 
     float r[N][N][2];  // Declare position array
     float m[N][N][3];  // Declare magnetization array
@@ -399,19 +432,19 @@ int main()
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
     initialisePosition(r);
-    cout << "Setting initial magnetization" << endl;
-    initialiseMagnetization(m, r, 1, 1, 3);
-    cout << "Calculating effective field" << endl;
+    initialiseMagnetization(m, r, -1, 1, 3);
     calculateMagneticField(m, B, Ba);
     writeFile("Bfield.txt", r, B);
 
     int counter = 0;
-    while (counter < 100)
+    while (counter < 10)
     {
         cout << counter << endl;
         calculateMagneticField(m, B, Ba);
         step(m, B);
-        writeFile("data/" + to_string(counter) + ".txt", r, m);
+        char outName[16];
+        sprintf(outName, "data/m%06d.ovf", counter);
+        writeFile(outName, r, m);
         t += h;
         counter++;
     }
