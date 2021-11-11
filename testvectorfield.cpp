@@ -21,6 +21,7 @@ int main()
 
     vecField4 = vecField1 + vecField2;
     cout << vecField4.data[4][5][1] << endl;
+    // delete &vecField1;
 
     // cout << result(511, 38, 1) << endl;
 }

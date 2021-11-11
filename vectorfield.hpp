@@ -23,7 +23,7 @@ class VectorField
             }
         }
 
-        VectorField(VectorField &other)  // Copy constructor
+        VectorField(VectorField const& other)  // Copy constructor
         {
             std::cout << "copy constructore called" << std::endl;
             data = new T**[Nx];
@@ -43,11 +43,10 @@ class VectorField
             }
         }
 
-        ~VectorField() { delete [] data; }
+        ~VectorField() { }
 
         VectorField& operator+=(VectorField const& rhs)
         {
-            VectorField<T, Nx, Ny, vecSize> ret;
             for (int i=0; i<Nx; i++)
             {
                 for (int j=0; j<Ny; j++)
@@ -63,8 +62,7 @@ class VectorField
 
         VectorField& operator+(VectorField const& rhs)
         {
-            std::cout << "Adding" << std::endl;
-            VectorField result = *this;
+            VectorField<T, Nx, Ny, vecSize> result(*this);
             return result += rhs;
         }
 };
