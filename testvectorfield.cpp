@@ -19,7 +19,7 @@ int main()
     // vecField1 += vecField2;
     // cout << vecField1.data[4][5][1];
 
-    vecField4 = vecField1 * 5;
+    vecField4 = vecField2 * 2 + vecField3 * 8 + vecField1;
     cout << vecField4.data[4][5][1] << endl;
     // delete &vecField1;
 

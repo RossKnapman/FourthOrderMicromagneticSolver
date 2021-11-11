@@ -23,19 +23,6 @@ void crossProduct(float (&a)[3], float (&b)[3], float (&out)[3])
     out[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-void scalarMultiply(float scalar, float (&arr)[N][N][3], float (&out)[N][N][3])
-{
-    for (int i=0; i<N; i++)
-    {
-        for (int j=0; j<N; j++)
-        {
-            out[i][j][0] = arr[i][j][0]*scalar;
-            out[i][j][1] = arr[i][j][1]*scalar;
-            out[i][j][2] = arr[i][j][2]*scalar;
-        }
-    }
-}
-
 void arrayAdd2(float (&a)[N][N][3], float(&b)[N][N][3], float (&out)[N][N][3])
 {
     for (int i=0; i<N; i++)

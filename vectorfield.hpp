@@ -44,46 +44,24 @@ class VectorField
 
         ~VectorField() { }
 
-        VectorField& operator+=(VectorField const& rhs)
-        {
-            for (int i=0; i<Nx; i++)
-            {
-                for (int j=0; j<Ny; j++)
-                {
-                    for (int component=0; component<vecSize; component++)
-                    {
-                        data[i][j][component] += rhs.data[i][j][component];
-                    }
-                }
-            }
-            return *this;
-        }
-
-        VectorField& operator+(VectorField const& rhs)
+        VectorField operator+(VectorField const& rhs)
         {
             VectorField<T, Nx, Ny, vecSize> result(*this);
-            return result += rhs;
-        }
-
-        VectorField& operator*=(float scalar)
-        {
             for (int i=0; i<Nx; i++)
-            {
                 for (int j=0; j<Ny; j++)
-                {
                     for (int component=0; component<vecSize; component++)
-                    {
-                        data[i][j][component] *= scalar;
-                    }
-                }
-            }
-            return *this;
+                        result.data[i][j][component] = this->data[i][j][component] + rhs.data[i][j][component];
+            return result;
         }
 
-        VectorField& operator*(float scalar)
+        VectorField operator*(float scalar)
         {
             VectorField<T, Nx, Ny, vecSize> result(*this);
-            return result *= scalar;
+            for (int i=0; i<Nx; i++)
+                for (int j=0; j<Ny; j++)
+                    for (int component=0; component < vecSize; component++)
+                        result.data[i][j][component] = this->data[i][j][component] * scalar;
+            return result;
         }
 };
 
