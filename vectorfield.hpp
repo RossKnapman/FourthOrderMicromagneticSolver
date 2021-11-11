@@ -1,3 +1,5 @@
+#include <iostream>
+
 #ifndef VECTOR_FIELD
 #define VECTOR_FIELD
 
@@ -9,6 +11,7 @@ class VectorField
 
     public:
         T& operator() (int i, int j, int k) { return data[i][j][k]; }
+
         VectorField()
         {
             for (int i=0; i<Nx; i++)
@@ -21,7 +24,25 @@ class VectorField
                 }
             }
         }
+
         ~VectorField() { delete [] data; }
+
+        VectorField operator+(VectorField v)
+        {
+            VectorField<T, Nx, Ny, vecSize> ret;
+            for (int i=0; i<Nx; i++)
+            {
+                for (int j=0; j<Ny; j++)
+                {
+                    for (int component=0; component<vecSize; component++)
+                    {
+                        std::cout << i << " " << j << " " << component << std::endl;
+                        ret(i, j, component) = data[i][j][component] + v(i, j, component);
+                    }
+                }
+            }
+            return ret;
+        }
 };
 
 #endif
