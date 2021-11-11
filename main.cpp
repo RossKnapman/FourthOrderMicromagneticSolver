@@ -4,10 +4,12 @@
 #include <array>
 #include <cmath>
 
-#define N 128
+#include "vectorfield.hpp"
+
+#define N 512
 #define DELTA 0.2
-#define ALPHA 0.05
-#define h 1e-4
+#define ALPHA 1e-3
+#define h 1e-2
 #define T_FIN 0.1
 
 using namespace std;
@@ -145,7 +147,7 @@ void initialiseMagnetization(float (&m)[N][N][3], float (&r)[N][N][2], float pol
     }
 }
 
-void calculateMagneticField(float (&m)[N][N][3], float (&B)[N][N][3], const float (&Ba)[3])
+void calculateMagneticField(float *m, float *B, const float (&Ba)[3])
 {
     for (int i=2; i<N-2; i++)
     {
@@ -160,81 +162,81 @@ void calculateMagneticField(float (&m)[N][N][3], float (&B)[N][N][3], const floa
             B[i][j][0] -= (4 / (DELTA*DELTA)) * m[i][j][0];
             B[i][j][1] -= (4 / (DELTA*DELTA)) * m[i][j][1];
             B[i][j][2] -= (4 / (DELTA*DELTA)) * m[i][j][2];
-            B[i][j][0] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][0];
-            B[i][j][1] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][1];
-            B[i][j][2] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][2];
+            // B[i][j][0] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][0];
+            // B[i][j][1] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][1];
+            // B[i][j][2] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j][2];
 
             // Cell directly to left
             B[i][j][0] += m[i-1][j][0] / (DELTA*DELTA);
             B[i][j][1] += m[i-1][j][1] / (DELTA*DELTA);
             B[i][j][2] += m[i-1][j][2] / (DELTA*DELTA);
-            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][0];
-            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][1];
-            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][2];
+            // B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][0];
+            // B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][1];
+            // B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j][2];
 
             // Cell directly to right
             B[i][j][0] += m[i+1][j][0] / (DELTA*DELTA);
             B[i][j][1] += m[i+1][j][1] / (DELTA*DELTA);
             B[i][j][2] += m[i+1][j][2] / (DELTA*DELTA);
-            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][0];
-            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][1];
-            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][2];
+            // B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][0];
+            // B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][1];
+            // B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j][2];
 
             // Cell directly below
             B[i][j][0] += m[i][j-1][0] / (DELTA*DELTA);
             B[i][j][1] += m[i][j-1][1] / (DELTA*DELTA);
             B[i][j][2] += m[i][j-1][2] / (DELTA*DELTA);
-            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][0];
-            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][1];
-            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][2];
+            // B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][0];
+            // B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][1];
+            // B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j-1][2];
 
             // Cell directly above
             B[i][j][0] += m[i][j+1][0] / (DELTA*DELTA);
             B[i][j][1] += m[i][j+1][1] / (DELTA*DELTA);
             B[i][j][2] += m[i][j+1][2] / (DELTA*DELTA);
-            B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][0];
-            B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][1];
-            B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][2];
+            // B[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][0];
+            // B[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][1];
+            // B[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m[i][j+1][2];
 
-            // Cell to bottom-left
-            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][0];
-            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][1];
-            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][2];
+            // // Cell to bottom-left
+            // B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][0];
+            // B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][1];
+            // B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j-1][2];
 
-            // Cell to bottom-right
-            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][0];
-            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][1];
-            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][2];
+            // // Cell to bottom-right
+            // B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][0];
+            // B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][1];
+            // B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j-1][2];
 
-            // Cell to top-left
-            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][0];
-            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][1];
-            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][2];
+            // // Cell to top-left
+            // B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][0];
+            // B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][1];
+            // B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i-1][j+1][2];
 
-            // Cell to top-right
-            B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][0];
-            B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][1];
-            B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][2];
+            // // Cell to top-right
+            // B[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][0];
+            // B[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][1];
+            // B[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m[i+1][j+1][2];
 
-            // Cell two to left
-            B[i][j][0] -= m[i-2][j][0] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][1] -= m[i-2][j][1] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][2] -= m[i-2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+            // // Cell two to left
+            // B[i][j][0] -= m[i-2][j][0] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][1] -= m[i-2][j][1] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][2] -= m[i-2][j][2] / (DELTA*DELTA*DELTA*DELTA);
 
-            // Cell two to right
-            B[i][j][0] -= m[i+2][j][0] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][1] -= m[i+2][j][1] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][2] -= m[i+2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+            // // Cell two to right
+            // B[i][j][0] -= m[i+2][j][0] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][1] -= m[i+2][j][1] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][2] -= m[i+2][j][2] / (DELTA*DELTA*DELTA*DELTA);
 
-            // Cell two below
-            B[i][j][0] -= m[i][j-2][0] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][1] -= m[i][j-2][1] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][2] -= m[i][j-2][2] / (DELTA*DELTA*DELTA*DELTA);
+            // // Cell two below
+            // B[i][j][0] -= m[i][j-2][0] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][1] -= m[i][j-2][1] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][2] -= m[i][j-2][2] / (DELTA*DELTA*DELTA*DELTA);
 
-            // Cell two above
-            B[i][j][0] -= m[i][j+2][0] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][1] -= m[i][j+2][1] / (DELTA*DELTA*DELTA*DELTA);
-            B[i][j][2] -= m[i][j+2][2] / (DELTA*DELTA*DELTA*DELTA);
+            // // Cell two above
+            // B[i][j][0] -= m[i][j+2][0] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][1] -= m[i][j+2][1] / (DELTA*DELTA*DELTA*DELTA);
+            // B[i][j][2] -= m[i][j+2][2] / (DELTA*DELTA*DELTA*DELTA);
 
         }
     }
@@ -425,9 +427,9 @@ void writeFile(string name, float (&r)[N][N][2], float (&m)[N][N][3])
 int main()
 {
 
-    float r[N][N][2];  // Declare position array
-    float m[N][N][3];  // Declare magnetization array
-    float B[N][N][3];  // Declare magnetic field array
+    auto B = new float [N][N][3];  // Declare emergent field array
+    auto r = new float [N][N][3];  // Declare position array
+    auto m = new float [N][N][3];  // Declare magnetization array
 
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
@@ -437,7 +439,7 @@ int main()
     writeFile("Bfield.txt", r, B);
 
     int counter = 0;
-    while (counter < 10)
+    while (counter < 100)
     {
         cout << counter << endl;
         calculateMagneticField(m, B, Ba);
