@@ -6,14 +6,12 @@
 template <typename T, int Nx, int Ny, int vecSize>
 class VectorField
 {
-    private:
-        T*** data = new T**[Nx];
-
     public:
-        T& operator() (int i, int j, int k) { return data[i][j][k]; }
+        T*** data;
 
         VectorField()
         {
+            data = new T**[Nx];
             for (int i=0; i<Nx; i++)
             {
                 data[i] = new T*[Ny];
@@ -25,9 +23,29 @@ class VectorField
             }
         }
 
+        VectorField(VectorField &other)  // Copy constructor
+        {
+            std::cout << "copy constructore called" << std::endl;
+            data = new T**[Nx];
+            for (int i=0; i<Nx; i++)
+            {
+                data[i] = new T*[Ny];
+        
+                for (int j=0; j<Ny; j++)
+                {
+                    data[i][j] = new T[vecSize];
+                    
+                    for (int component=0; component<vecSize; component++)
+                    {
+                        data[i][j][component] = other.data[i][j][component];
+                    }
+                }
+            }
+        }
+
         ~VectorField() { delete [] data; }
 
-        VectorField operator+(VectorField v)
+        VectorField& operator+=(VectorField const& rhs)
         {
             VectorField<T, Nx, Ny, vecSize> ret;
             for (int i=0; i<Nx; i++)
@@ -36,12 +54,18 @@ class VectorField
                 {
                     for (int component=0; component<vecSize; component++)
                     {
-                        std::cout << i << " " << j << " " << component << std::endl;
-                        ret(i, j, component) = data[i][j][component] + v(i, j, component);
+                        data[i][j][component] += rhs.data[i][j][component];
                     }
                 }
             }
-            return ret;
+            return *this;
+        }
+
+        VectorField& operator+(VectorField const& rhs)
+        {
+            std::cout << "Adding" << std::endl;
+            VectorField result = *this;
+            return result += rhs;
         }
 };
 

@@ -8,13 +8,19 @@ using namespace std;
 int main()
 {
     VectorField<float, N, N, 3> vecField1;
-    vecField1(4, 5, 1) = 5.;
+    vecField1.data[4][5][1]= 5.;
     VectorField<float, N, N, 3> vecField2;
-    vecField2(4, 5, 1) = 10.;
+    vecField2.data[4][5][1] = 10.;
     VectorField<float, N, N, 3> vecField3;
-    vecField3(4, 5, 1) = 100.;
+    vecField3.data[4][5][1] = 100.;
 
-    VectorField<float, N, N, 3> result = vecField1 + vecField2 + vecField3;
+    VectorField<float, N, N, 3> vecField4;
+
+    // vecField1 += vecField2;
+    // cout << vecField1.data[4][5][1];
+
+    vecField4 = vecField1 + vecField2;
+    cout << vecField4.data[4][5][1] << endl;
 
     // cout << result(511, 38, 1) << endl;
 }
