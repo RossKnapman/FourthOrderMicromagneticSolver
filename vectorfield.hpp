@@ -1,7 +1,7 @@
 #include <iostream>
 
-#ifndef VECTOR_FIELD
-#define VECTOR_FIELD
+#ifndef VECTOR_FIELD_H
+#define VECTOR_FIELD_H
 
 template <typename T, int Nx, int Ny, int vecSize>
 class VectorField
