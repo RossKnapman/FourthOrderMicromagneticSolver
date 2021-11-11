@@ -25,7 +25,6 @@ class VectorField
 
         VectorField(VectorField const& other)  // Copy constructor
         {
-            std::cout << "copy constructore called" << std::endl;
             data = new T**[Nx];
             for (int i=0; i<Nx; i++)
             {
@@ -64,6 +63,27 @@ class VectorField
         {
             VectorField<T, Nx, Ny, vecSize> result(*this);
             return result += rhs;
+        }
+
+        VectorField& operator*=(float scalar)
+        {
+            for (int i=0; i<Nx; i++)
+            {
+                for (int j=0; j<Ny; j++)
+                {
+                    for (int component=0; component<vecSize; component++)
+                    {
+                        data[i][j][component] *= scalar;
+                    }
+                }
+            }
+            return *this;
+        }
+
+        VectorField& operator*(float scalar)
+        {
+            VectorField<T, Nx, Ny, vecSize> result(*this);
+            return result *= scalar;
         }
 };
 
