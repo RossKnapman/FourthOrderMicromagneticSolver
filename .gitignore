@@ -33,7 +33,6 @@
 
 # Other
 data/*
-*.py
-*.txt
+build/*
 *.png
 *.mp4

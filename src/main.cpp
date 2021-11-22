@@ -4,7 +4,7 @@
 #include <array>
 #include <cmath>
 
-#include "vectorfield.hpp"
+#include "VectorField.hpp"
 
 #define N 512
 #define DELTA 0.2
