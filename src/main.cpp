@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "VectorField.hpp"
+#include "Maths.hpp"
 
 #define N 512
 #define DELTA 0.2
@@ -16,54 +17,44 @@ using namespace std;
 
 float t = 0;  // Total simulation time
 
-void crossProduct(float* a, float* b, float* out)
-{
-    out[0] = a[1] * b[2] - b[1] * a[2];
-    out[1] = a[2] * b[0] - a[0] * b[2];
-    out[2] = a[0] * b[1] - a[1] * b[0];
-}
 
-void normalise(float (&a)[3], float (&out)[3])
-{
-    float magnitude = sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
-    out[0] = a[0] / magnitude;
-    out[1] = a[1] / magnitude;
-    out[2] = a[2] / magnitude;
-}
-
-void normalise(VectorField<float, N, N, 2> &vec)
-{
-    for (int i=0; i<N; i++)
-        for (int j=0; j<N; j++)
-            float magnitude = sqrt(vec.data[i][j][0] * vec.data[i][j][0] + vec.data[i][j][1] * vec.data[i][j][1] + vec.data[i][j][2] * vec.data[i][j][2];
-            vec[i][j][0] = vec[i][j][0] * (1/magnitude);
-            vec[i][j][1] = vec[i][j][1] * (1/magnitude);
-            vec[i][j][2] = vec[i][j][2] * (1/magnitude);
-}
-
-void initialisePosition(VectorField<float, N, N, 2> &pos)
+void normalise(VectorField &vec)
 {
     for (int i=0; i<N; i++)
     {
         for (int j=0; j<N; j++)
         {
-            pos.data[i][j][0] = i * DELTA;
-            pos.data[i][j][1] = j * DELTA;
+            float magnitude = sqrt(vec.data[vec.getIndex(i, j, 0)] * vec.data[vec.getIndex(i, j, 0)] + vec.data[vec.getIndex(i, j, 1)] * vec.data[vec.getIndex(i, j, 1)] + vec.data[vec.getIndex(i, j, 2)] * vec.data[vec.getIndex(i, j, 2)]);
+            vec.data[vec.getIndex(i, j, 0)] = vec.data[vec.getIndex(i, j, 0)] * (1/magnitude);
+            vec.data[vec.getIndex(i, j, 1)] = vec.data[vec.getIndex(i, j, 1)] * (1/magnitude);
+            vec.data[vec.getIndex(i, j, 2)] = vec.data[vec.getIndex(i, j, 2)] * (1/magnitude);
         }
     }
 }
 
-void initialiseMagnetization(VectorField<float, N, N, 3> &m, VectorField<float, N, N, 2> &pos, float pol, float charge, float w)
+void initialisePosition(VectorField &pos)
+{
+    for (int i=0; i<N; i++)
+    {
+        for (int j=0; j<N; j++)
+        {
+            pos.data[pos.getIndex(i, j, 0)] = i * DELTA;
+            pos.data[pos.getIndex(i, j, 1)] = j * DELTA;
+        }
+    }
+}
+
+void initialiseMagnetization(VectorField &m, VectorField &pos, float pol, float charge, float w)
 {
     // Initialise with a skyrmion in the middle of the grid
     for (int i=0; i<N; i++)
     {
         for (int j=0; j<N; j++)
         {
-            float xMax = pos.data[N-1][N-1][0];
+            float xMax = pos.data[pos.getIndex(N-1, N-1, 0)];
 
-            float x = pos.data[i][j][0] - xMax/2;
-            float y = pos.data[i][j][1] - xMax/2;
+            float x = pos.data[pos.getIndex(i, j, 0)] - xMax/2;
+            float y = pos.data[pos.getIndex(i, j, 1)] - xMax/2;
             float r2 = x*x + y*y;
             float r = sqrt(r2);
             float w2 = w*w;
@@ -72,109 +63,109 @@ void initialiseMagnetization(VectorField<float, N, N, 3> &m, VectorField<float, 
             float mx = (x * charge / r) * (1 - abs(mz));
             float my = (y * charge / r) * (1 - abs(mz));
             
-            m.data[i][j][0] = mx;
-            m.data[i][j][1] = my;
-            m.data[i][j][2] = mz;
+            m.data[m.getIndex(i, j, 0)] = mx;
+            m.data[m.getIndex(i, j, 1)] = my;
+            m.data[m.getIndex(i, j, 2)] = mz;
         }
     }
 }
 
-void calculateMagneticField(VectorField<float, N, N, 3> &m, VectorField<float, N, N, 3> &B, const float (&Ba)[3])
+void calculateMagneticField(VectorField &m, VectorField &B, const float (&Ba)[3])
 {
     for (int i=2; i<N-2; i++)
     {
         for (int j=2; j<N-2; j++)
         {
             // Reset to zero (adding the applied magnetic field first)
-            B.data[i][j][0] = Ba[0];
-            B.data[i][j][1] = Ba[1];
-            B.data[i][j][2] = Ba[2];
+            B.data[B.getIndex(i, j, 0)] = Ba[0];
+            B.data[B.getIndex(i, j, 1)] = Ba[1];
+            B.data[B.getIndex(i, j, 2)] = Ba[2];
 
             // Central spin
-            B.data[i][j][0] -= (4 / (DELTA*DELTA)) * m.data[i][j][0];
-            B.data[i][j][1] -= (4 / (DELTA*DELTA)) * m.data[i][j][1];
-            B.data[i][j][2] -= (4 / (DELTA*DELTA)) * m.data[i][j][2];
-            B.data[i][j][0] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j][0];
-            B.data[i][j][1] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j][1];
-            B.data[i][j][2] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j][2];
+            B.data[B.getIndex(i, j, 0)] -= (4 / (DELTA*DELTA)) * m.data[m.getIndex(i, j, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (4 / (DELTA*DELTA)) * m.data[m.getIndex(i, j, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (4 / (DELTA*DELTA)) * m.data[m.getIndex(i, j, 2)];
+            B.data[B.getIndex(i, j, 0)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j, 2)];
 
             // Cell directly to left
-            B.data[i][j][0] += m.data[i-1][j][0] / (DELTA*DELTA);
-            B.data[i][j][1] += m.data[i-1][j][1] / (DELTA*DELTA);
-            B.data[i][j][2] += m.data[i-1][j][2] / (DELTA*DELTA);
-            B.data[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j][0];
-            B.data[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j][1];
-            B.data[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j][2];
+            B.data[B.getIndex(i, j, 0)] += m.data[m.getIndex(i-1, j, 0)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] += m.data[m.getIndex(i-1, j, 1)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] += m.data[m.getIndex(i-1, j, 2)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j, 0)];
+            B.data[B.getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j, 1)];
+            B.data[B.getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j, 2)];
 
             // Cell directly to right
-            B.data[i][j][0] += m.data[i+1][j][0] / (DELTA*DELTA);
-            B.data[i][j][1] += m.data[i+1][j][1] / (DELTA*DELTA);
-            B.data[i][j][2] += m.data[i+1][j][2] / (DELTA*DELTA);
-            B.data[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j][0];
-            B.data[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j][1];
-            B.data[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j][2];
+            B.data[B.getIndex(i, j, 0)] += m.data[m.getIndex(i+1, j, 0)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] += m.data[m.getIndex(i+1, j, 1)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] += m.data[m.getIndex(i+1, j, 2)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j, 0)];
+            B.data[B.getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j, 1)];
+            B.data[B.getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j, 2)];
 
             // Cell directly below
-            B.data[i][j][0] += m.data[i][j-1][0] / (DELTA*DELTA);
-            B.data[i][j][1] += m.data[i][j-1][1] / (DELTA*DELTA);
-            B.data[i][j][2] += m.data[i][j-1][2] / (DELTA*DELTA);
-            B.data[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j-1][0];
-            B.data[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j-1][1];
-            B.data[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j-1][2];
+            B.data[B.getIndex(i, j, 0)] += m.data[m.getIndex(i, j-1, 0)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] += m.data[m.getIndex(i, j-1, 1)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] += m.data[m.getIndex(i, j-1, 2)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j-1, 0)];
+            B.data[B.getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j-1, 1)];
+            B.data[B.getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j-1, 2)];
 
             // Cell directly above
-            B.data[i][j][0] += m.data[i][j+1][0] / (DELTA*DELTA);
-            B.data[i][j][1] += m.data[i][j+1][1] / (DELTA*DELTA);
-            B.data[i][j][2] += m.data[i][j+1][2] / (DELTA*DELTA);
-            B.data[i][j][0] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j+1][0];
-            B.data[i][j][1] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j+1][1];
-            B.data[i][j][2] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i][j+1][2];
+            B.data[B.getIndex(i, j, 0)] += m.data[m.getIndex(i, j+1, 0)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] += m.data[m.getIndex(i, j+1, 1)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] += m.data[m.getIndex(i, j+1, 2)] / (DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j+1, 0)];
+            B.data[B.getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j+1, 1)];
+            B.data[B.getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i, j+1, 2)];
 
             // Cell to bottom-left
-            B.data[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j-1][0];
-            B.data[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j-1][1];
-            B.data[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j-1][2];
+            B.data[B.getIndex(i, j, 0)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j-1, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j-1, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j-1, 2)];
 
             // Cell to bottom-right
-            B.data[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j-1][0];
-            B.data[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j-1][1];
-            B.data[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j-1][2];
+            B.data[B.getIndex(i, j, 0)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j-1, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j-1, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j-1, 2)];
 
             // Cell to top-left
-            B.data[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j+1][0];
-            B.data[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j+1][1];
-            B.data[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i-1][j+1][2];
+            B.data[B.getIndex(i, j, 0)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j+1, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j+1, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i-1, j+1, 2)];
 
             // Cell to top-right
-            B.data[i][j][0] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j+1][0];
-            B.data[i][j][1] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j+1][1];
-            B.data[i][j][2] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[i+1][j+1][2];
+            B.data[B.getIndex(i, j, 0)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j+1, 0)];
+            B.data[B.getIndex(i, j, 1)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j+1, 1)];
+            B.data[B.getIndex(i, j, 2)] -= (2 / (DELTA*DELTA*DELTA*DELTA)) * m.data[m.getIndex(i+1, j+1, 2)];
 
             // Cell two to left
-            B.data[i][j][0] -= m.data[i-2][j][0] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][1] -= m.data[i-2][j][1] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][2] -= m.data[i-2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] -= m.data[m.getIndex(i-2, j, 0)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] -= m.data[m.getIndex(i-2, j, 1)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] -= m.data[m.getIndex(i-2, j, 2)] / (DELTA*DELTA*DELTA*DELTA);
 
             // Cell two to right
-            B.data[i][j][0] -= m.data[i+2][j][0] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][1] -= m.data[i+2][j][1] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][2] -= m.data[i+2][j][2] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] -= m.data[m.getIndex(i+2, j, 0)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] -= m.data[m.getIndex(i+2, j, 1)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] -= m.data[m.getIndex(i+2, j, 2)] / (DELTA*DELTA*DELTA*DELTA);
 
             // Cell two below
-            B.data[i][j][0] -= m.data[i][j-2][0] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][1] -= m.data[i][j-2][1] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][2] -= m.data[i][j-2][2] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] -= m.data[m.getIndex(i, j-2, 0)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] -= m.data[m.getIndex(i, j-2, 1)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] -= m.data[m.getIndex(i, j-2, 2)] / (DELTA*DELTA*DELTA*DELTA);
 
             // Cell two above
-            B.data[i][j][0] -= m.data[i][j+2][0] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][1] -= m.data[i][j+2][1] / (DELTA*DELTA*DELTA*DELTA);
-            B.data[i][j][2] -= m.data[i][j+2][2] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 0)] -= m.data[m.getIndex(i, j+2, 0)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 1)] -= m.data[m.getIndex(i, j+2, 1)] / (DELTA*DELTA*DELTA*DELTA);
+            B.data[B.getIndex(i, j, 2)] -= m.data[m.getIndex(i, j+2, 2)] / (DELTA*DELTA*DELTA*DELTA);
 
         }
     }
 }
 
-void calculateTimeDerivative(VectorField<float, N, N, 3> &m, VectorField<float, N, N, 3> &B, VectorField<float, N, N, 3> &dmdt)
+void calculateTimeDerivative(VectorField &m, VectorField &B, VectorField &dmdt)
 {
     for (int i=0; i<N; i++)
     {
@@ -184,23 +175,23 @@ void calculateTimeDerivative(VectorField<float, N, N, 3> &m, VectorField<float, 
             float mCrossmCrossB[3];
             crossProduct(m.data[i][j], B.data[i][j], mCrossB);
             crossProduct(m.data[i][j], mCrossB, mCrossmCrossB);
-            dmdt.data[i][j][0] = mCrossB[0] + ALPHA * mCrossmCrossB[0];
-            dmdt.data[i][j][1] = mCrossB[1] + ALPHA * mCrossmCrossB[1];
-            dmdt.data[i][j][2] = mCrossB[2] + ALPHA * mCrossmCrossB[2];
+            dmdt.data[dmdt.getIndex(i, j, 0)] = mCrossB[0] + ALPHA * mCrossmCrossB[0];
+            dmdt.data[dmdt.getIndex(i, j, 1)] = mCrossB[1] + ALPHA * mCrossmCrossB[1];
+            dmdt.data[dmdt.getIndex(i, j, 2)] = mCrossB[2] + ALPHA * mCrossmCrossB[2];
         }
     }
 }
 
-void step(VectorField<float, N, N, 3> &m, VectorField<float, N, N, 3> &B)
+void step(VectorField &m, VectorField &B)
 {
 
     // Dorman-Prince (RK45) integration
-    VectorField<float, N, N, 3> k1;
-    VectorField<float, N, N, 3> k2;
-    VectorField<float, N, N, 3> k3;
-    VectorField<float, N, N, 3> k4;
-    VectorField<float, N, N, 3> k5;
-    VectorField<float, N, N, 3> k6;
+    VectorField k1(N, N, 3);
+    VectorField k2(N, N, 3);
+    VectorField k3(N, N, 3);
+    VectorField k4(N, N, 3);
+    VectorField k5(N, N, 3);
+    VectorField k6(N, N, 3);
 
 
     // Calculate k1
@@ -232,7 +223,7 @@ void step(VectorField<float, N, N, 3> &m, VectorField<float, N, N, 3> &B)
     }
 }
 
-void writeFile(string name, VectorField<float, N, N, 3> &m)
+void writeFile(string name, VectorField &m)
 {
     ofstream file;
     file.open(name);
@@ -272,7 +263,7 @@ void writeFile(string name, VectorField<float, N, N, 3> &m)
     {
         for (int i=0; i<N; i++)
         {
-            file << m.data[i][j][0] << " " << m.data[i][j][1] << " " << m.data[i][j][2] << endl;
+            file << m.data[m.getIndex(i, j, 0)] << " " << m.data[m.getIndex(i, j, 1)] << " " << m.data[m.getIndex(i, j, 2)] << endl;
         }
     }
 
@@ -284,9 +275,9 @@ void writeFile(string name, VectorField<float, N, N, 3> &m)
 
 int main()
 {
-    VectorField<float, N, N, 3> m;  // Declare magnetization array
-    VectorField<float, N, N, 3> B;  // Declare emergent field array
-    VectorField<float, N, N, 2> pos;  // Declare position array
+    VectorField m;  // Declare magnetization array
+    VectorField B;  // Declare emergent field array
+    VectorField pos;  // Declare position array
 
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
@@ -295,18 +286,15 @@ int main()
 
     calculateMagneticField(m, B, Ba);
 
-    VectorField<float, N, N, 3> dmdt;
+    VectorField dmdt;
     calculateTimeDerivative(m, B, dmdt);
     writeFile("data/m000000.ovf", dmdt);
 
     VectorField<float, 1, 1, 3> test;
-    test.data[0][0][0] = 10;
-    test.data[0][0][1] = 21;
-    test.data[0][0][2] = -100;
+    test.data[test.getIndex(0, 0, 0)] = 10;
+    test.data[test.getIndex(0, 0, 1)] = 21;
+    test.data[test.getIndex(0, 0, 2)] = -100;
     normalise(test);
-
-    std::cout << to_string(test.data[0][0][0]) << " " << to_string(test.data[0][0][1]) << " " << to_string(test.data[0][0][2]) << endl;
-
 
     // int counter = 0;
     // while (counter < 100)

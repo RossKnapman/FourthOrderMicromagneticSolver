@@ -4,7 +4,7 @@
 TEST(VectorFieldTest, AssignAndRecall)
 {
     VectorField *vectorField = new VectorField(256, 256, 3);
-    vectorField->setValue(3, 4, 5, 5.);
-    float outValue = vectorField->getValue(3, 4, 5);
+    vectorField[getIndex(3, 4, 5)] = 5.;
+    float outValue = vectorField[getIndex(3, 4, 5)];
     EXPECT_EQ(outValue, 5.);
 }

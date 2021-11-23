@@ -22,20 +22,6 @@ class VectorField
 
         ~VectorField() {}
 
-        float getValue(int i, int j, int k)
-        {
-            int index = getIndex(i, j, k);
-            return data[index];
-        }
-
-        void setValue(int i, int j, int k, float value)
-        {
-            int index = getIndex(i, j, k);
-            data[index] = value;
-        }
-    
-    private:
-
         int getIndex(int i, int j, int k)
         {
             int index = ((i*Ny + j) * vecSize) + k;
