@@ -15,7 +15,7 @@ TEST(MathsTest, CrossProduct)
 
     crossProduct(&a0, &a1, &a2, &b0, &b1, &b2, &out0, &out1, &out2);
 
-    EXPECT_EQ(out0, 19.);
+    EXPECT_EQ(out0, 18.);
     EXPECT_EQ(out1, -25.);
     EXPECT_EQ(out2, -27.);
 }
