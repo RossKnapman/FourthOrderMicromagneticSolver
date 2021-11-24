@@ -27,4 +27,14 @@ class VectorField
             int index = ((i*Ny + j) * vecSize) + k;
             return index;
         }
+
+        VectorField multiplyByScalar(float scalar)
+        {
+            VectorField returnVectorField = *this;
+
+            for (int i=0; i<data.size(); i++)
+                returnVectorField.data[i] = returnVectorField.data[i] * scalar;
+
+            return returnVectorField;
+        }
 };
