@@ -28,6 +28,16 @@ class VectorField
             return index;
         }
 
+        VectorField add(VectorField vec)
+        {
+            VectorField returnVectorField = *this;
+
+            for (int i=0; i<data.size(); i++)
+                returnVectorField.data[i] = returnVectorField.data[i] + vec.data[i];
+
+            return returnVectorField;
+        }
+
         VectorField multiplyByScalar(float scalar)
         {
             VectorField returnVectorField = *this;

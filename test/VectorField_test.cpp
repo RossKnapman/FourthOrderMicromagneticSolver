@@ -9,7 +9,18 @@ TEST(VectorFieldTest, AssignAndRecall)
     EXPECT_EQ(outValue, 5.);
 }
 
-TEST(VectorFieldTest, multiplyByScalar)
+TEST(VectorFieldTest, ElementWiseAddition)
+{
+    VectorField *a = new VectorField(2, 2, 2);
+    VectorField *b = new VectorField(2, 2, 2);
+    a->data[4] = 3;
+    b->data[4] = 4;
+    VectorField *result = new VectorField(2, 2, 2);
+    *result = a->add(*b);
+    EXPECT_EQ(result->data[4], 7);
+}
+
+TEST(VectorFieldTest, MultiplyByScalar)
 {
     VectorField *vectorField = new VectorField(256, 256, 3);
     vectorField->data[400] = 5.;
