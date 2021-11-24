@@ -36,3 +36,5 @@ data/*
 build/*
 *.png
 *.mp4
+.idea/*
+cmake-build-debug/*

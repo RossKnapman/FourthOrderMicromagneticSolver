@@ -22,7 +22,7 @@ class VectorField
 
         ~VectorField() {}
 
-        int getIndex(int i, int j, int k)
+        int getIndex(int i, int j, int k) const
         {
             int index = ((i*Ny + j) * vecSize) + k;
             return index;
@@ -34,6 +34,16 @@ class VectorField
 
             for (int i=0; i<data.size(); i++)
                 returnVectorField.data[i] = returnVectorField.data[i] + vec.data[i];
+
+            return returnVectorField;
+        }
+
+        VectorField subtract(VectorField vec)
+        {
+            VectorField returnVectorField = *this;
+
+            for (int i=0; i<data.size(); i++)
+                returnVectorField.data[i] = returnVectorField.data[i] - vec.data[i];
 
             return returnVectorField;
         }

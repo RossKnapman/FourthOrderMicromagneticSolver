@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "Maths.hpp"
 
-TEST(VectorFieldTest, AssignAndRecall)
+TEST(MathsTest, CrossProduct)
 {
     float a0 = 1;
     float a1 = 4;
@@ -15,5 +15,7 @@ TEST(VectorFieldTest, AssignAndRecall)
 
     crossProduct(&a0, &a1, &a2, &b0, &b1, &b2, &out0, &out1, &out2);
 
-    EXPECT_EQ(outValue, 5.);
+    EXPECT_EQ(out0, 19.);
+    EXPECT_EQ(out1, -25.);
+    EXPECT_EQ(out2, -27.);
 }

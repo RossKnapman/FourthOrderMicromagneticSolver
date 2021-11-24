@@ -20,6 +20,43 @@ TEST(VectorFieldTest, ElementWiseAddition)
     EXPECT_EQ(result->data[4], 7);
 }
 
+TEST(VectorFieldTest, ElementWiseSubtraction)
+{
+    VectorField *a = new VectorField(2, 2, 2);
+    VectorField *b = new VectorField(2, 2, 2);
+    a->data[4] = 3;
+    b->data[4] = 4;
+    VectorField *result = new VectorField(2, 2, 2);
+    *result = a->subtract(*b);
+    EXPECT_EQ(result->data[4], -1);
+}
+
+TEST(VectorFieldTest, MultipleElementWiseAddition)
+{
+    VectorField *a = new VectorField(2, 2, 2);
+    VectorField *b = new VectorField(2, 2, 2);
+    VectorField *c = new VectorField(2, 2, 2);
+    a->data[4] = 3;
+    b->data[4] = 4;
+    c->data[4] = 10;
+    VectorField *result = new VectorField(2, 2, 2);
+    *result = a->add(b->add(*c));
+    EXPECT_EQ(result->data[4], 17);
+}
+
+TEST(VectorFieldTest, MultipleElementwiseSubtraction)
+{
+    VectorField *a = new VectorField(2, 2, 2);
+    VectorField *b = new VectorField(2, 2, 2);
+    VectorField *c = new VectorField(2, 2, 2);
+    a->data[4] = 3;
+    b->data[4] = 4;
+    c->data[4] = 10;
+    VectorField *result = new VectorField(2, 2, 2);
+    *result = a->add(b->subtract(*c));
+    EXPECT_EQ(result->data[4], -3);
+}
+
 TEST(VectorFieldTest, MultiplyByScalar)
 {
     VectorField *vectorField = new VectorField(256, 256, 3);

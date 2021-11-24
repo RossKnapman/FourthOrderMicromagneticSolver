@@ -165,19 +165,32 @@ void calculateMagneticField(VectorField &m, VectorField &B, const float (&Ba)[3]
     }
 }
 
-void calculateTimeDerivative(VectorField &m, VectorField &B, VectorField &dmdt)
+void calculateTimeDerivative(const VectorField &m, const VectorField &B, VectorField &dmdt)
 {
     for (int i=0; i<N; i++)
     {
         for (int j=0; j<N; j++)
         {
-            float mCrossB[3];
-            float mCrossmCrossB[3];
-            crossProduct(m.data[i][j], B.data[i][j], mCrossB);
-            crossProduct(m.data[i][j], mCrossB, mCrossmCrossB);
-            dmdt.data[dmdt.getIndex(i, j, 0)] = mCrossB[0] + ALPHA * mCrossmCrossB[0];
-            dmdt.data[dmdt.getIndex(i, j, 1)] = mCrossB[1] + ALPHA * mCrossmCrossB[1];
-            dmdt.data[dmdt.getIndex(i, j, 2)] = mCrossB[2] + ALPHA * mCrossmCrossB[2];
+            float mCrossB0;
+            float mCrossB1;
+            float mCrossB2;
+            float mCrossmCrossB0;
+            float mCrossmCrossB1;
+            float mCrossmCrossB2;
+
+            float m0 = m.data[m.getIndex(i, j, 0)];
+            float m1 = m.data[m.getIndex(i, j, 1)];
+            float m2 = m.data[m.getIndex(i, j, 2)];
+
+            float B0 = B.data[B.getIndex(i, j, 0)];
+            float B1 = B.data[B.getIndex(i, j, 1)];
+            float B2 = B.data[B.getIndex(i, j, 2)];
+
+            crossProduct(&m0, &m1, &m2, &B0, &B1, &B2, &mCrossB0, &mCrossB1, &mCrossB2);
+            crossProduct(&m0, &m1, &m2, &mCrossB0, &mCrossB1, &mCrossB2, &mCrossmCrossB0, &mCrossmCrossB1, &mCrossmCrossB2);
+            dmdt.data[dmdt.getIndex(i, j, 0)] = mCrossB0 + ALPHA * mCrossmCrossB0;
+            dmdt.data[dmdt.getIndex(i, j, 1)] = mCrossB1 + ALPHA * mCrossmCrossB1;
+            dmdt.data[dmdt.getIndex(i, j, 2)] = mCrossB2 + ALPHA * mCrossmCrossB2;
         }
     }
 }
@@ -196,31 +209,30 @@ void step(VectorField &m, VectorField &B)
 
     // Calculate k1
     calculateTimeDerivative(m, B, k1);
-    k1 = k1 * h;
+    k1 = k1.multiplyByScalar(h);
 
     // Calculate k2
-    calculateTimeDerivative(m + k1*(1./5.), B, k2);
-    k2 = k2 * h;
+    calculateTimeDerivative(m.add(k1.multiplyByScalar(1./5.)), B, k2);
+    k2 = k2.multiplyByScalar(h);
 
     // Calculate k3
-    calculateTimeDerivative(m + k1*(3./40.) + k2*(9./40.), B, k3);
-    k3 = k3 * h;
+    calculateTimeDerivative(m.add(k1.multiplyByScalar(3./40.).add(k2.multiplyByScalar(9./40.))), B, k3);
+    k3 = k3.multiplyByScalar(h);
 
     // Calculate k4
-    calculateTimeDerivative(m + k1*(44./45.) - k2*(56./15.) + k3*(32./9/), B, k4)
-    k4 = k4 * h;
+    calculateTimeDerivative(m.add(k1.multiplyByScalar(44./45.).subtract(k2.multiplyByScalar(56./15.).add(k3.multiplyByScalar(32./9)))), B, k4);
+    k4 = k4.multiplyByScalar(h);
 
     // Calculate k5
-    calculateTimeDerivative(m + k1*(19372./6561.) - k2*(25360./2187.) + k3*(64448./6561.) - k4*(212./729.), B, k5);
-    k5 = k5 * h;
+    calculateTimeDerivative(m.add(k1.multiplyByScalar(19372./6561.).subtract(k2.multiplyByScalar(25360./2187.).add(k3.multiplyByScalar(64448./6561.).subtract(k4.multiplyByScalar(212./729.))))), B, k5);
+    k5 = k5.multiplyByScalar(h);
 
     // Calculate k6
-    calculateTimeDerivative(m + k1*(9017./3168.) - k2*(355./33.) - k3*(46732./5247.) + k4*(49./176.) - k5*(5103./18656.), B, k6);
-    k6 = k6 * h;
+    calculateTimeDerivative(m.add(k1.multiplyByScalar(9017./3168.).subtract(k2.multiplyByScalar(355./33.).subtract(k3.multiplyByScalar(46732./5247.).add(k4.multiplyByScalar(49./176.).subtract(k5.multiplyByScalar(5103./18656.)))))), B, k6);
+    k6 = k6.multiplyByScalar(h);
 
-    m = m + k1*(35./384.) + k3*(500./1113.) + k4*(125./192.) - k5*(2187./6784.) + k6*(11./64.);
+    m = m.add(k1.multiplyByScalar(35./384.).add(k3.multiplyByScalar(500./1113.).add(k4.multiplyByScalar(125./192.).subtract(k5.multiplyByScalar(2187./6784.).add(k6.multiplyByScalar(11./64.))))));
     normalise(m);
-    }
 }
 
 void writeFile(string name, VectorField &m)
@@ -275,9 +287,9 @@ void writeFile(string name, VectorField &m)
 
 int main()
 {
-    VectorField m;  // Declare magnetization array
-    VectorField B;  // Declare emergent field array
-    VectorField pos;  // Declare position array
+    VectorField m(N, N, 3);  // Declare magnetization array
+    VectorField B(N, N, 3);  // Declare emergent field array
+    VectorField pos(N, N, 2);  // Declare position array
 
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
@@ -286,15 +298,9 @@ int main()
 
     calculateMagneticField(m, B, Ba);
 
-    VectorField dmdt;
+    VectorField dmdt(N, N, 3);
     calculateTimeDerivative(m, B, dmdt);
     writeFile("data/m000000.ovf", dmdt);
-
-    VectorField<float, 1, 1, 3> test;
-    test.data[test.getIndex(0, 0, 0)] = 10;
-    test.data[test.getIndex(0, 0, 1)] = 21;
-    test.data[test.getIndex(0, 0, 2)] = -100;
-    normalise(test);
 
     // int counter = 0;
     // while (counter < 100)
