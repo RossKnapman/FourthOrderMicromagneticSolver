@@ -6,12 +6,7 @@
 
 #include "VectorField.hpp"
 #include "Maths.hpp"
-
-#define N 512
-#define DELTA 0.2
-#define ALPHA 1e-3
-#define h 1e-2
-#define T_FIN 0.1
+#include "Constants.hpp"
 
 using namespace std;
 
@@ -28,44 +23,6 @@ void normalise(VectorField &vec)
             vec.data[vec.getIndex(i, j, 0)] = vec.data[vec.getIndex(i, j, 0)] * (1/magnitude);
             vec.data[vec.getIndex(i, j, 1)] = vec.data[vec.getIndex(i, j, 1)] * (1/magnitude);
             vec.data[vec.getIndex(i, j, 2)] = vec.data[vec.getIndex(i, j, 2)] * (1/magnitude);
-        }
-    }
-}
-
-void initialisePosition(VectorField &pos)
-{
-    for (int i=0; i<N; i++)
-    {
-        for (int j=0; j<N; j++)
-        {
-            pos.data[pos.getIndex(i, j, 0)] = i * DELTA;
-            pos.data[pos.getIndex(i, j, 1)] = j * DELTA;
-        }
-    }
-}
-
-void initialiseMagnetization(VectorField &m, VectorField &pos, float pol, float charge, float w)
-{
-    // Initialise with a skyrmion in the middle of the grid
-    for (int i=0; i<N; i++)
-    {
-        for (int j=0; j<N; j++)
-        {
-            float xMax = pos.data[pos.getIndex(N-1, N-1, 0)];
-
-            float x = pos.data[pos.getIndex(i, j, 0)] - xMax/2;
-            float y = pos.data[pos.getIndex(i, j, 1)] - xMax/2;
-            float r2 = x*x + y*y;
-            float r = sqrt(r2);
-            float w2 = w*w;
-
-            float mz = 2 * pol * (exp(-r2 / w2) - 0.5);
-            float mx = (x * charge / r) * (1 - abs(mz));
-            float my = (y * charge / r) * (1 - abs(mz));
-            
-            m.data[m.getIndex(i, j, 0)] = mx;
-            m.data[m.getIndex(i, j, 1)] = my;
-            m.data[m.getIndex(i, j, 2)] = mz;
         }
     }
 }
@@ -293,14 +250,13 @@ int main()
 
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
-    initialisePosition(pos);
-    initialiseMagnetization(m, pos, -1, 1, 3);
+    // initialisePosition(pos);
+    // initialiseMagnetization(m, pos, -1, 1, 3);
 
-    calculateMagneticField(m, B, Ba);
+    // calculateMagneticField(m, B, Ba);
 
-    VectorField dmdt(N, N, 3);
-    calculateTimeDerivative(m, B, dmdt);
-    writeFile("data/m000000.ovf", dmdt);
+    // VectorField dmdt(N, N, 3);
+    // calculateTimeDerivative(m, B, dmdt);
 
     // int counter = 0;
     // while (counter < 100)
@@ -310,7 +266,7 @@ int main()
     //     step(m, B);
     //     char outName[16];
     //     sprintf(outName, "data/m%06d.ovf", counter);
-    //     writeFile(outName, r, m);
+    //     writeFile(outName, m);
     //     t += h;
     //     counter++;
     // }
