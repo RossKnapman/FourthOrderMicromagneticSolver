@@ -41,7 +41,7 @@ TEST(VectorFieldTest, ElementWiseAddition)
     a->data[4] = 3;
     b->data[4] = 4;
     VectorField *result = new VectorField(2, 2, 2);
-    *result = a->add(*b);
+    *result = *a + *b;
     EXPECT_FLOAT_EQ(result->data[4], 7);
 }
 
@@ -53,7 +53,7 @@ TEST(VectorFieldTest, ElementWiseSubtraction)
     a->data[4] = 3;
     b->data[4] = 4;
     VectorField *result = new VectorField(2, 2, 2);
-    *result = a->subtract(*b);
+    *result = *a - *b;
     EXPECT_FLOAT_EQ(result->data[4], -1);
 }
 
@@ -67,7 +67,7 @@ TEST(VectorFieldTest, MultipleElementWiseAddition)
     b->data[4] = 4;
     c->data[4] = 10;
     VectorField *result = new VectorField(2, 2, 2);
-    *result = a->add(b->add(*c));
+    *result = *a + *b + *c;
     EXPECT_FLOAT_EQ(result->data[4], 17);
 }
 
@@ -81,7 +81,7 @@ TEST(VectorFieldTest, MultipleElementwiseSubtraction)
     b->data[4] = 4;
     c->data[4] = 10;
     VectorField *result = new VectorField(2, 2, 2);
-    *result = a->add(b->subtract(*c));
+    *result = *a + *b - *c;
     EXPECT_FLOAT_EQ(result->data[4], -3);
 }
 
@@ -90,6 +90,20 @@ TEST(VectorFieldTest, MultiplyByScalar)
     // Test elementwise multiplication of a vector field by a scalar
     VectorField *vectorField = new VectorField(256, 256, 3);
     vectorField->data[400] = 5.;
-    *vectorField = vectorField->multiplyByScalar(5.);
+    *vectorField = *vectorField * 5.;
     EXPECT_FLOAT_EQ(vectorField->data[400], 25.);
+}
+
+TEST(VectorFieldTest, AddMultipliedByScalar)
+{
+    // Test adding a vector field to another vector field that is multiplied by a scalar
+    VectorField a(2, 2, 2);
+    VectorField b(2, 2, 2);
+    VectorField c(2, 2, 2);
+    a.data[4] = 5;
+    b.data[4] = 10;
+    c.data[4] = 25;
+    VectorField result(2, 2, 2);
+    result = a + b*0.5 + c*5;
+    EXPECT_FLOAT_EQ(result.data[4], 135);
 }

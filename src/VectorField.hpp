@@ -25,7 +25,7 @@ class VectorField
             return index;
         }
 
-        VectorField add(VectorField vec)
+        VectorField operator+(VectorField vec)
         {
             VectorField returnVectorField = *this;
 
@@ -35,7 +35,9 @@ class VectorField
             return returnVectorField;
         }
 
-        VectorField subtract(VectorField vec)
+
+
+        VectorField operator-(VectorField vec)
         {
             VectorField returnVectorField = *this;
 
@@ -45,7 +47,7 @@ class VectorField
             return returnVectorField;
         }
 
-        VectorField multiplyByScalar(float scalar)
+        VectorField operator*(float scalar)
         {
             VectorField returnVectorField = *this;
 

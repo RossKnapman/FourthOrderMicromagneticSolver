@@ -7,11 +7,11 @@
 #include "VectorField.hpp"
 #include "Maths.hpp"
 #include "Constants.hpp"
+#include "Initialise.hpp"
 
 using namespace std;
 
 float t = 0;  // Total simulation time
-
 
 void calculateMagneticField(VectorField *m, VectorField *B, const float (&Ba)[3])
 {
@@ -151,34 +151,35 @@ void step(VectorField *m, VectorField *B)
 
     // Calculate k1
     calculateTimeDerivative(m, B, &k1);
-    k1 = k1.multiplyByScalar(h);
+    k1 = k1 * h;
 
     // Calculate k2
-    VectorField newMagField = m->add(k1.multiplyByScalar(1./5.));
+    VectorField newMagField = *m + k1*(1/5);
     calculateTimeDerivative(&newMagField, B, &k2);
-    k2 = k2.multiplyByScalar(h);
+    k2 = k2*h;
 
     // Calculate k3
-    newMagField = m->add(k1.multiplyByScalar(3./40.).add(k2.multiplyByScalar(9./40.)));
+    newMagField = *m + k1*(3/40) + k2*(9/40);
     calculateTimeDerivative(&newMagField, B, &k3);
-    k3 = k3.multiplyByScalar(h);
+    k3 = k3*h;
 
     // Calculate k4
-    newMagField = m->add(k1.multiplyByScalar(44./45.).subtract(k2.multiplyByScalar(56./15.).add(k3.multiplyByScalar(32./9))));
+    newMagField = *m + k1*(44/45) - k2*(56/15) + k3*(32/9);
     calculateTimeDerivative(&newMagField, B, &k4);
-    k4 = k4.multiplyByScalar(h);
+    k4 = k4*h;
 
     // Calculate k5
-    newMagField = m->add(k1.multiplyByScalar(19372./6561.).subtract(k2.multiplyByScalar(25360./2187.).add(k3.multiplyByScalar(64448./6561.).subtract(k4.multiplyByScalar(212./729.)))));
+    newMagField = *m + k1*(19372/6561) - k2*(25360/2187) + k3*(64448/6561) - k4*(212/729);
     calculateTimeDerivative(&newMagField, B, &k5);
-    k5 = k5.multiplyByScalar(h);
+    k5 = k5 * h;
 
     // Calculate k6
-    newMagField = m->add(k1.multiplyByScalar(9017./3168.).subtract(k2.multiplyByScalar(355./33.).subtract(k3.multiplyByScalar(46732./5247.).add(k4.multiplyByScalar(49./176.).subtract(k5.multiplyByScalar(5103./18656.))))));
+    newMagField = *m + k1*(9017/3168) - k2*(355/33) - k3*(46732/5247) + k4*(49/176) - k5*(5103/18656);
     calculateTimeDerivative(&newMagField, B, &k6);
-    k6 = k6.multiplyByScalar(h);
+    k6 = k6 * h;
 
-    *m = m->add(k1.multiplyByScalar(35./384.).add(k3.multiplyByScalar(500./1113.).add(k4.multiplyByScalar(125./192.).subtract(k5.multiplyByScalar(2187./6784.).add(k6.multiplyByScalar(11./64.))))));
+    *m = *m + k1*(35/384) + k3*(500/1113) + k4*(125/192) - k5*(2187/6784) + k6*(11/84);
+
     normalise(m);
 }
 
@@ -240,26 +241,26 @@ int main()
 
     const float Ba[3] = {0., 0., 1.};  // Applied magnetic field
 
-    // initialisePosition(pos);
-    // initialiseMagnetization(m, pos, -1, 1, 3);
+    initialisePosition(&pos);
+    initialiseMagnetizationSkyrmion(&m, &pos, -1, 1, 3);
 
-    // calculateMagneticField(m, B, Ba);
+    calculateMagneticField(&m, &B, Ba);
 
-    // VectorField dmdt(N, N, 3);
-    // calculateTimeDerivative(m, B, dmdt);
+    VectorField dmdt(N, N, 3);
+    calculateTimeDerivative(&m, &B, &dmdt);
 
-    // int counter = 0;
-    // while (counter < 100)
-    // {
-    //     cout << counter << endl;
-    //     calculateMagneticField(m, B, Ba);
-    //     step(m, B);
-    //     char outName[16];
-    //     sprintf(outName, "data/m%06d.ovf", counter);
-    //     writeFile(outName, m);
-    //     t += h;
-    //     counter++;
-    // }
+    int counter = 0;
+    while (counter < STEPS)
+    {
+        cout << counter << endl;
+        calculateMagneticField(&m, &B, Ba);
+        step(&m, &B);
+        char outName[16];
+        sprintf(outName, "data/m%06d.ovf", counter);
+        writeFile(outName, &m);
+        t += h;
+        counter++;
+    }
 
     return 0;
 }
