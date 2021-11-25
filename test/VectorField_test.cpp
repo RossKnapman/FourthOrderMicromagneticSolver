@@ -1,16 +1,41 @@
 #include <gtest/gtest.h>
 #include "VectorField.hpp"
+#include "Constants.hpp"
+
+TEST(VectorFieldTest, ConstructVector)
+{
+    // Check that the vector field initialises with the correct diemsions
+    VectorField *vectorField = new VectorField(N, N, 3);
+    EXPECT_EQ(vectorField->Nx, N);
+    EXPECT_EQ(vectorField->Ny, N);
+    EXPECT_EQ(vectorField->vecSize, 3);
+    EXPECT_EQ(vectorField->data.size(), N*N*3);
+}
 
 TEST(VectorFieldTest, AssignAndRecall)
 {
-    VectorField *vectorField = new VectorField(256, 256, 3);
+    // Test assigning a value to a given element of the vector field, then recalling it
+    VectorField *vectorField = new VectorField(N, N, 3);
     vectorField->data[vectorField->getIndex(3, 4, 5)] = 5.;
     float outValue = vectorField->data[vectorField->getIndex(3, 4, 5)];
     EXPECT_EQ(outValue, 5.);
 }
 
+TEST(VectorFieldTest, CalculateIndex)
+{
+    // Test calculation of 1D index from 3D indices
+    VectorField *vectorField = new VectorField(N, N, 2);
+    int i = 10;
+    int j = 20;
+    int component = 1;
+    int index = vectorField->getIndex(i, j, component);
+    int expected = ((i*N + j) * 2) + component;
+    EXPECT_EQ(index, expected);
+}
+
 TEST(VectorFieldTest, ElementWiseAddition)
 {
+    // Test elementwise addition of two vector fields
     VectorField *a = new VectorField(2, 2, 2);
     VectorField *b = new VectorField(2, 2, 2);
     a->data[4] = 3;
@@ -22,6 +47,7 @@ TEST(VectorFieldTest, ElementWiseAddition)
 
 TEST(VectorFieldTest, ElementWiseSubtraction)
 {
+    // Test elementwise subtraction of two vector fields
     VectorField *a = new VectorField(2, 2, 2);
     VectorField *b = new VectorField(2, 2, 2);
     a->data[4] = 3;
@@ -33,6 +59,7 @@ TEST(VectorFieldTest, ElementWiseSubtraction)
 
 TEST(VectorFieldTest, MultipleElementWiseAddition)
 {
+    // Test elementwise addition of three vector fields
     VectorField *a = new VectorField(2, 2, 2);
     VectorField *b = new VectorField(2, 2, 2);
     VectorField *c = new VectorField(2, 2, 2);
@@ -46,6 +73,7 @@ TEST(VectorFieldTest, MultipleElementWiseAddition)
 
 TEST(VectorFieldTest, MultipleElementwiseSubtraction)
 {
+    // Test elementwise addition of two vector fields, then further subtraction of another
     VectorField *a = new VectorField(2, 2, 2);
     VectorField *b = new VectorField(2, 2, 2);
     VectorField *c = new VectorField(2, 2, 2);
@@ -59,6 +87,7 @@ TEST(VectorFieldTest, MultipleElementwiseSubtraction)
 
 TEST(VectorFieldTest, MultiplyByScalar)
 {
+    // Test elementwise multiplication of a vector field by a scalar
     VectorField *vectorField = new VectorField(256, 256, 3);
     vectorField->data[400] = 5.;
     *vectorField = vectorField->multiplyByScalar(5.);
