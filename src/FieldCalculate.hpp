@@ -107,26 +107,26 @@ void calculateTimeDerivative(VectorField *m, VectorField *B, VectorField *dmdt)
     {
         for (int j=0; j<N; j++)
         {
-            float mCrossB0;
-            float mCrossB1;
-            float mCrossB2;
-            float mCrossmCrossB0;
-            float mCrossmCrossB1;
-            float mCrossmCrossB2;
+            float mCrossBx;
+            float mCrossBy;
+            float mCrossBz;
+            float mCrossmCrossBx;
+            float mCrossmCrossBy;
+            float mCrossmCrossBz;
 
-            float m0 = m->data[m->getIndex(i, j, 0)];
-            float m1 = m->data[m->getIndex(i, j, 1)];
-            float m2 = m->data[m->getIndex(i, j, 2)];
+            float mx = m->data[m->getIndex(i, j, 0)];
+            float my = m->data[m->getIndex(i, j, 1)];
+            float mz = m->data[m->getIndex(i, j, 2)];
 
-            float B0 = B->data[B->getIndex(i, j, 0)];
-            float B1 = B->data[B->getIndex(i, j, 1)];
-            float B2 = B->data[B->getIndex(i, j, 2)];
+            float Bx = B->data[B->getIndex(i, j, 0)];
+            float By = B->data[B->getIndex(i, j, 1)];
+            float Bz = B->data[B->getIndex(i, j, 2)];
 
-            crossProduct(&m0, &m1, &m2, &B0, &B1, &B2, &mCrossB0, &mCrossB1, &mCrossB2);
-            crossProduct(&m0, &m1, &m2, &mCrossB0, &mCrossB1, &mCrossB2, &mCrossmCrossB0, &mCrossmCrossB1, &mCrossmCrossB2);
-            dmdt->data[dmdt->getIndex(i, j, 0)] = mCrossB0 + ALPHA * mCrossmCrossB0;
-            dmdt->data[dmdt->getIndex(i, j, 1)] = mCrossB1 + ALPHA * mCrossmCrossB1;
-            dmdt->data[dmdt->getIndex(i, j, 2)] = mCrossB2 + ALPHA * mCrossmCrossB2;
+            crossProduct(&mx, &my, &mz, &Bx, &By, &Bz, &mCrossBx, &mCrossBy, &mCrossBz);
+            crossProduct(&mx, &my, &mz, &mCrossBx, &mCrossBy, &mCrossBz, &mCrossmCrossBx, &mCrossmCrossBy, &mCrossmCrossBz);
+            dmdt->data[dmdt->getIndex(i, j, 0)] = mCrossBx + ALPHA * mCrossmCrossBx;
+            dmdt->data[dmdt->getIndex(i, j, 1)] = mCrossBy + ALPHA * mCrossmCrossBy;
+            dmdt->data[dmdt->getIndex(i, j, 2)] = mCrossBz + ALPHA * mCrossmCrossBz;
         }
     }
 }
