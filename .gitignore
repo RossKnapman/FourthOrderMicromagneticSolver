@@ -38,4 +38,3 @@ build/*
 *.mp4
 .idea/*
 cmake-build-debug/*
-*.py
