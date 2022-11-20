@@ -17,41 +17,41 @@ void calculateMagneticField(VectorField *m, VectorField *B, const float (&Ba)[3]
             B->data[B->getIndex(i, j, 2)] = Ba[2];
 
             // Central spin
-            B->data[B->getIndex(i, j, 0)] -= (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 0)];
-            B->data[B->getIndex(i, j, 1)] -= (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 1)];
-            B->data[B->getIndex(i, j, 2)] -= (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 2)];
+            B->data[B->getIndex(i, j, 0)] += (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 0)];
+            B->data[B->getIndex(i, j, 1)] += (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 1)];
+            B->data[B->getIndex(i, j, 2)] += (4 / (DELTA*DELTA)) * m->data[m->getIndex(i, j, 2)];
             B->data[B->getIndex(i, j, 0)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j, 0)];
             B->data[B->getIndex(i, j, 1)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j, 1)];
             B->data[B->getIndex(i, j, 2)] -= (20 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j, 2)];
 
             // Cell directly to left
-            B->data[B->getIndex(i, j, 0)] += m->data[m->getIndex(i-1, j, 0)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 1)] += m->data[m->getIndex(i-1, j, 1)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 2)] += m->data[m->getIndex(i-1, j, 2)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 0)] -= m->data[m->getIndex(i-1, j, 0)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 1)] -= m->data[m->getIndex(i-1, j, 1)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 2)] -= m->data[m->getIndex(i-1, j, 2)] / (DELTA*DELTA);
             B->data[B->getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i-1, j, 0)];
             B->data[B->getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i-1, j, 1)];
             B->data[B->getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i-1, j, 2)];
 
             // Cell directly to right
-            B->data[B->getIndex(i, j, 0)] += m->data[m->getIndex(i+1, j, 0)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 1)] += m->data[m->getIndex(i+1, j, 1)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 2)] += m->data[m->getIndex(i+1, j, 2)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 0)] -= m->data[m->getIndex(i+1, j, 0)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 1)] -= m->data[m->getIndex(i+1, j, 1)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 2)] -= m->data[m->getIndex(i+1, j, 2)] / (DELTA*DELTA);
             B->data[B->getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i+1, j, 0)];
             B->data[B->getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i+1, j, 1)];
             B->data[B->getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i+1, j, 2)];
 
             // Cell directly below
-            B->data[B->getIndex(i, j, 0)] += m->data[m->getIndex(i, j-1, 0)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 1)] += m->data[m->getIndex(i, j-1, 1)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 2)] += m->data[m->getIndex(i, j-1, 2)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 0)] -= m->data[m->getIndex(i, j-1, 0)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 1)] -= m->data[m->getIndex(i, j-1, 1)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 2)] -= m->data[m->getIndex(i, j-1, 2)] / (DELTA*DELTA);
             B->data[B->getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j-1, 0)];
             B->data[B->getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j-1, 1)];
             B->data[B->getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j-1, 2)];
 
             // Cell directly above
-            B->data[B->getIndex(i, j, 0)] += m->data[m->getIndex(i, j+1, 0)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 1)] += m->data[m->getIndex(i, j+1, 1)] / (DELTA*DELTA);
-            B->data[B->getIndex(i, j, 2)] += m->data[m->getIndex(i, j+1, 2)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 0)] -= m->data[m->getIndex(i, j+1, 0)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 1)] -= m->data[m->getIndex(i, j+1, 1)] / (DELTA*DELTA);
+            B->data[B->getIndex(i, j, 2)] -= m->data[m->getIndex(i, j+1, 2)] / (DELTA*DELTA);
             B->data[B->getIndex(i, j, 0)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j+1, 0)];
             B->data[B->getIndex(i, j, 1)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j+1, 1)];
             B->data[B->getIndex(i, j, 2)] += (8 / (DELTA*DELTA*DELTA*DELTA)) * m->data[m->getIndex(i, j+1, 2)];
@@ -124,9 +124,10 @@ void calculateTimeDerivative(VectorField *m, VectorField *B, VectorField *dmdt)
 
             crossProduct(&mx, &my, &mz, &Bx, &By, &Bz, &mCrossBx, &mCrossBy, &mCrossBz);
             crossProduct(&mx, &my, &mz, &mCrossBx, &mCrossBy, &mCrossBz, &mCrossmCrossBx, &mCrossmCrossBy, &mCrossmCrossBz);
-            dmdt->data[dmdt->getIndex(i, j, 0)] = mCrossBx + ALPHA * mCrossmCrossBx;
-            dmdt->data[dmdt->getIndex(i, j, 1)] = mCrossBy + ALPHA * mCrossmCrossBy;
-            dmdt->data[dmdt->getIndex(i, j, 2)] = mCrossBz + ALPHA * mCrossmCrossBz;
+            float gilb = -1. / (1. + ALPHA*ALPHA);
+            dmdt->data[dmdt->getIndex(i, j, 0)] = gilb * (mCrossBx + ALPHA * mCrossmCrossBx);
+            dmdt->data[dmdt->getIndex(i, j, 1)] = gilb * (mCrossBy + ALPHA * mCrossmCrossBy);
+            dmdt->data[dmdt->getIndex(i, j, 2)] = gilb * (mCrossBz + ALPHA * mCrossmCrossBz);
         }
     }
 }
